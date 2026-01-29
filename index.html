@@ -58,23 +58,44 @@ button{
 </div>
 
 <script>
-function generate(){
+async function generate(){
   const topic = document.getElementById("topic").value;
   const tone = document.getElementById("tone").value;
+  const output = document.getElementById("output");
 
-  if(topic===""){
-    document.getElementById("output").innerText="Please enter a topic";
+  if(!topic){
+    output.innerText = "Please enter a topic";
     return;
   }
 
-  const captions = {
-    Motivational: `🔥 Stay consistent with ${topic}. Success is coming!`,
-    Funny: `😂 ${topic} level: expert… at procrastinating`,
-    Professional: `Here are key insights related to ${topic} worth exploring.`
-  };
+  output.innerText = "⏳ Generating AI caption...";
 
-  document.getElementById("output").innerText = captions[tone];
+  try{
+    const res = await fetch(
+      "https://api-inference.huggingface.co/models/google/flan-t5-base",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inputs: `Write a ${tone} social media caption about ${topic}`
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if(data.error){
+      output.innerText = "⚠️ AI busy hai, thodi der baad try karo";
+    } else {
+      output.innerText = data[0].generated_text;
+    }
+  } catch(err){
+    output.innerText = "❌ Error occurred";
+  }
 }
 </script>
+
 </body>
 </html>
